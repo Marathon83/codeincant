@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { runSandbox } from "../api/client";
+import { streamRequest } from "../api/client";
 import CodeBlock from "../components/CodeBlock";
 
 const LANGS = ["bash", "python", "javascript", "ruby"];
@@ -218,10 +218,16 @@ export default function SandboxTab() {
   const [timeout_, setTimeout_]   = useState(15);
   const [stdin, setStdin]         = useState("");
   const [showStdin, setShowStdin] = useState(false);
-  const [result, setResult]       = useState(null);
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState("");
-  const [history, setHistory]     = useState([]);
+  const [result, setResult]         = useState(null);
+  const [liveOutput, setLiveOutput] = useState("");
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState("");
+  const [history, setHistory]       = useState([]);
+
+  const abortRef  = useRef(null);
+  const stdoutRef = useRef("");
+
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   const switchLang = (l) => {
     setLang(l);
@@ -231,17 +237,48 @@ export default function SandboxTab() {
 
   const run = async () => {
     if (!code.trim() || loading) return;
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
     setLoading(true);
     setError("");
     setResult(null);
+    setLiveOutput("");
+    stdoutRef.current = "";
     try {
-      const data = await runSandbox({ code, language: lang, timeout: timeout_, stdin });
-      setResult(data);
-      setHistory(prev =>
-        [{ code, lang, result: data, ts: new Date().toLocaleTimeString() }, ...prev].slice(0, MAX_HISTORY)
-      );
-    } catch {
-      setError("Backend error — is the server running?");
+      for await (const chunk of streamRequest(
+        "/sandbox/stream",
+        { code, language: lang, timeout: timeout_, stdin },
+        abortRef.current.signal
+      )) {
+        if (chunk.error)   { setError(chunk.error); break; }
+        if (chunk.blocked) {
+          const data = { blocked: true, block_reason: chunk.block_reason, stdout: "", stderr: "", exit_code: -1, duration_ms: 0, killed: false, warnings: [] };
+          setResult(data);
+          break;
+        }
+        if (chunk.stdout_chunk) {
+          stdoutRef.current += chunk.stdout_chunk;
+          setLiveOutput(stdoutRef.current);
+        }
+        if (chunk.done) {
+          const data = {
+            blocked: false, block_reason: "",
+            stdout: stdoutRef.current,
+            stderr: chunk.stderr,
+            exit_code: chunk.exit_code,
+            duration_ms: chunk.duration_ms,
+            killed: chunk.killed,
+            warnings: chunk.warnings || [],
+          };
+          setResult(data);
+          setLiveOutput("");
+          setHistory(prev =>
+            [{ code, lang, result: data, ts: new Date().toLocaleTimeString() }, ...prev].slice(0, MAX_HISTORY)
+          );
+        }
+      }
+    } catch (e) {
+      if (e.name !== "AbortError") setError("Backend error — is the server running?");
     }
     setLoading(false);
   };
@@ -349,6 +386,29 @@ export default function SandboxTab() {
 
         {error && <div className="error-msg mt-12">{error}</div>}
       </div>
+
+      {liveOutput && (
+        <div style={{
+          background: "#050505", border: "1px solid var(--border)", borderRadius: 4,
+          fontFamily: "var(--font-mono)", fontSize: 13, overflow: "hidden",
+        }}>
+          <div style={{
+            background: "var(--bg3)", borderBottom: "1px solid var(--border)",
+            display: "flex", alignItems: "center", gap: 8, padding: "6px 12px",
+          }}>
+            <span className="spinner" style={{ flexShrink: 0 }} />
+            <span style={{ color: "var(--text-dim)", fontSize: 11, letterSpacing: 1, textTransform: "uppercase" }}>
+              Live Output
+            </span>
+          </div>
+          <pre style={{
+            color: "var(--green)", margin: 0, padding: "12px 16px",
+            whiteSpace: "pre-wrap", wordBreak: "break-word", maxHeight: 400, overflowY: "auto",
+          }}>
+            {liveOutput}
+          </pre>
+        </div>
+      )}
 
       {result && (
         <>

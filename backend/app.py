@@ -6,6 +6,7 @@ from dotenv import load_dotenv
 import os
 import anthropic
 import json
+import asyncio
 import subprocess
 import re
 import time
@@ -784,3 +785,77 @@ def sandbox(req: SandboxReq):
         "killed": killed,
         "warnings": warnings,
     }
+
+
+@app.post("/sandbox/stream")
+async def sandbox_stream(req: SandboxReq):
+    async def _gen():
+        lang = req.language.lower()
+        if lang not in SANDBOX_IMAGES:
+            yield f"data: {json.dumps({'error': f'Language {lang!r} not supported'})}\n\n"
+            return
+
+        status, detail = scan_code(req.code)
+        if status == "blocked":
+            yield f"data: {json.dumps({'blocked': True, 'block_reason': detail})}\n\n"
+            return
+
+        warnings = detail
+        if warnings:
+            yield f"data: {json.dumps({'warnings': warnings})}\n\n"
+
+        timeout = max(3, min(req.timeout, 30))
+        entrypoint = SANDBOX_ENTRYPOINTS[lang]
+
+        try:
+            container = await asyncio.to_thread(_ensure_container, lang)
+        except Exception as e:
+            yield f"data: {json.dumps({'error': f'Could not start container: {e}'})}\n\n"
+            return
+
+        exec_cmd = ["docker", "exec", "-i", container, *entrypoint, req.code]
+        start = time.time()
+        killed = False
+
+        try:
+            proc = await asyncio.create_subprocess_exec(
+                *exec_cmd,
+                stdin=asyncio.subprocess.PIPE,
+                stdout=asyncio.subprocess.PIPE,
+                stderr=asyncio.subprocess.PIPE,
+            )
+
+            if req.stdin:
+                proc.stdin.write(req.stdin.encode())
+            proc.stdin.close()
+
+            # Kill the process after timeout without blocking the read loop
+            async def _kill_after(secs):
+                await asyncio.sleep(secs)
+                if proc.returncode is None:
+                    proc.kill()
+
+            kill_task = asyncio.create_task(_kill_after(timeout))
+
+            async for line in proc.stdout:
+                yield f"data: {json.dumps({'stdout_chunk': line.decode(errors='replace')})}\n\n"
+
+            kill_task.cancel()
+            killed = proc.returncode is None or (proc.returncode == -9)
+            stderr_bytes = await proc.stderr.read()
+            await proc.wait()
+            exit_code = proc.returncode if proc.returncode is not None else -1
+            stderr = (
+                f"[sandbox] Process killed — exceeded {timeout}s timeout"
+                if killed else
+                stderr_bytes.decode(errors="replace")
+            )
+
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+            return
+
+        duration_ms = int((time.time() - start) * 1000)
+        yield f"data: {json.dumps({'done': True, 'exit_code': exit_code, 'killed': killed, 'stderr': stderr, 'duration_ms': duration_ms, 'warnings': warnings})}\n\n"
+
+    return sse_response(_gen())

@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { tutorCode } from "../api/client";
+import { streamRequest } from "../api/client";
 import { useTabCtx } from "../context/TabContext";
 import CodeBlock from "../components/CodeBlock";
 import SendTo from "../components/SendTo";
@@ -38,11 +38,15 @@ export default function TutorTab() {
   const [code, setCode]       = useState("");
   const [language, setLang]   = useState("bash");
   const [level, setLevel]     = useState("beginner");
-  const [result, setResult]   = useState(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError]     = useState("");
+  const [result, setResult]         = useState(null);
+  const [streamText, setStreamText] = useState("");
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState("");
 
-  const runRef = useRef(null);
+  const abortRef = useRef(null);
+  const runRef   = useRef(null);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   const { inbox, consume } = useTabCtx();
   const incoming = inbox["tutor"];
@@ -55,13 +59,23 @@ export default function TutorTab() {
 
   const explain = async () => {
     if (!code.trim() || loading) return;
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
     setLoading(true);
     setError("");
     setResult(null);
+    setStreamText("");
     try {
-      setResult(await tutorCode({ code, language, level }));
-    } catch {
-      setError("Backend error — is the server running?");
+      for await (const chunk of streamRequest("/tutor/stream",
+        { code, language, level },
+        abortRef.current.signal
+      )) {
+        if (chunk.error) { setError(chunk.error); break; }
+        if (chunk.done)  { setResult(chunk.result); setStreamText(""); }
+        else             { setStreamText(prev => prev + chunk.text); }
+      }
+    } catch (e) {
+      if (e.name !== "AbortError") setError("Backend error — is the server running?");
     }
     setLoading(false);
   };

@@ -1,5 +1,5 @@
-import { useState } from "react";
-import { buildCheatsheet } from "../api/client";
+import { useState, useRef, useEffect } from "react";
+import { streamRequest } from "../api/client";
 import OsProfileSelector from "../components/OsProfileSelector";
 import CodeBlock from "../components/CodeBlock";
 
@@ -121,9 +121,15 @@ export default function CheatSheetsTab() {
   const [command, setCommand]     = useState(Object.keys(CHEATSHEET_PARAMS[CATEGORIES[0]])[0]);
   const [osProfile, setOsProfile] = useState("linux");
   const [params, setParams]       = useState({});
-  const [result, setResult]       = useState(null);
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState("");
+  const [result, setResult]         = useState(null);
+  const [streamText, setStreamText] = useState("");
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState("");
+
+  const abortRef = useRef(null);
+  const runRef   = useRef(null);
+
+  useEffect(() => () => abortRef.current?.abort(), []);
 
   const selectCategory = (cat) => {
     setCategory(cat);
@@ -143,16 +149,34 @@ export default function CheatSheetsTab() {
   const mergedParams = { ...currentDefaults, ...params };
 
   const build = async () => {
+    if (loading) return;
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
     setLoading(true);
     setError("");
     setResult(null);
+    setStreamText("");
     try {
-      setResult(await buildCheatsheet({ category, command, params: mergedParams, os_profile: osProfile }));
-    } catch {
-      setError("Backend error — is the server running?");
+      for await (const chunk of streamRequest("/cheatsheet/stream",
+        { category, command, params: mergedParams, os_profile: osProfile },
+        abortRef.current.signal
+      )) {
+        if (chunk.error) { setError(chunk.error); break; }
+        if (chunk.done)  { setResult(chunk.result); setStreamText(""); }
+        else             { setStreamText(prev => prev + chunk.text); }
+      }
+    } catch (e) {
+      if (e.name !== "AbortError") setError("Backend error — is the server running?");
     }
     setLoading(false);
   };
+
+  runRef.current = build;
+  useEffect(() => {
+    const h = (e) => { if ((e.ctrlKey || e.metaKey) && e.key === "Enter") { e.preventDefault(); runRef.current(); } };
+    window.addEventListener("keydown", h);
+    return () => window.removeEventListener("keydown", h);
+  }, []);
 
   const commands = Object.keys(CHEATSHEET_PARAMS[category] || {});
 
@@ -213,12 +237,26 @@ export default function CheatSheetsTab() {
 
         <div className="btn-group">
           <button className="btn btn-primary" onClick={build} disabled={loading}>
-            {loading ? <><span className="spinner" /> Building…</> : "⚙ Build Command"}
+            {loading
+              ? <><span className="spinner" /> Building…</>
+              : <>⚙ Build Command <span style={{ color: "var(--green-dim)", fontSize: 10, marginLeft: 6 }}>Ctrl+↵</span></>}
           </button>
         </div>
 
         {error && <div className="error-msg mt-12">{error}</div>}
       </div>
+
+      {streamText && (
+        <div className="panel">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <span className="spinner" style={{ flexShrink: 0 }} />
+            <span className="panel-title" style={{ marginBottom: 0 }}>Building…</span>
+          </div>
+          <pre style={{ fontSize: 11, color: "var(--text-dim)", maxHeight: 180, overflow: "auto", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+            {streamText}
+          </pre>
+        </div>
+      )}
 
       {result && (
         <>

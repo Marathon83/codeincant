@@ -659,6 +659,60 @@ Group consecutive lines that work together into a single annotated_lines entry. 
     })
 
 
+@app.post("/cheatsheet/stream")
+async def cheatsheet_stream(req: CheatReq):
+    system = f"""{os_ctx(req.os_profile)}
+
+You are ScriptForge AI command builder. Build a complete command for the given tool and parameters.
+
+Return ONLY valid JSON with no markdown or backticks:
+{{
+  "command_string": "the complete ready-to-run command",
+  "explanation": "what each part of the command does",
+  "examples": ["example 1", "example 2"],
+  "warnings": ["warning if dangerous"]
+}}"""
+    params_str = json.dumps(req.params) if req.params else "default usage"
+    user_text = f"Category: {req.category}\nCommand/Tool: {req.command}\nParameters: {params_str}"
+    fallback = {"command_string": "", "explanation": "", "examples": [], "warnings": []}
+    return sse_response(_sse_stream(system, user_text, fallback))
+
+
+@app.post("/tutor/stream")
+async def tutor_stream(req: TutorReq):
+    level_ctx = (
+        "Explain as if talking to a complete beginner. Use simple analogies, avoid jargon, define every term."
+        if req.level == "beginner"
+        else "Explain for an intermediate programmer who knows basics but wants deeper understanding."
+    )
+    system = f"""You are ScriptForge AI Tutor. {level_ctx}
+Language: {req.language}
+
+Analyze the code and return ONLY valid JSON with no markdown or backticks:
+{{
+  "title": "short descriptive title for what this script does",
+  "overview": "1-2 sentence plain-English summary of what the whole script accomplishes",
+  "annotated_lines": [
+    {{
+      "line_range": "1",
+      "code": "the exact line(s) of code",
+      "explanation": "plain English explanation of what this line does",
+      "concept": "the programming concept demonstrated (e.g. variable, loop, function call)"
+    }}
+  ],
+  "key_concepts": ["concept 1 taught by this script", "concept 2"],
+  "common_mistakes": ["mistake beginners make with this pattern"],
+  "exercises": ["exercise 1 to reinforce understanding", "exercise 2"],
+  "next_steps": ["what to learn next"]
+}}
+Group consecutive lines that work together into a single annotated_lines entry. Aim for 5-15 entries."""
+    fallback = {
+        "title": "Script Analysis", "overview": "", "annotated_lines": [],
+        "key_concepts": [], "common_mistakes": [], "exercises": [], "next_steps": [],
+    }
+    return sse_response(_sse_stream(system, req.code, fallback))
+
+
 @app.post("/sandbox")
 def sandbox(req: SandboxReq):
     lang = req.language.lower()

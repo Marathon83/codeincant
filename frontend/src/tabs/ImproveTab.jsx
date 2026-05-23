@@ -1,5 +1,5 @@
 import { useState, useRef, useEffect } from "react";
-import { improveScript } from "../api/client";
+import { streamRequest } from "../api/client";
 import { useTabCtx } from "../context/TabContext";
 import OsProfileSelector from "../components/OsProfileSelector";
 import CodeBlock from "../components/CodeBlock";
@@ -19,11 +19,13 @@ export default function ImproveTab() {
   const [mode, setMode]           = useState("simplify");
   const [osProfile, setOsProfile] = useState("linux");
   const [language, setLanguage]   = useState("bash");
-  const [result, setResult]       = useState(null);
-  const [loading, setLoading]     = useState(false);
-  const [error, setError]         = useState("");
+  const [result, setResult]         = useState(null);
+  const [streamText, setStreamText] = useState("");
+  const [loading, setLoading]       = useState(false);
+  const [error, setError]           = useState("");
 
-  const runRef = useRef(null);
+  const abortRef = useRef(null);
+  const runRef   = useRef(null);
 
   const { inbox, consume } = useTabCtx();
   const incoming = inbox["improve"];
@@ -34,15 +36,27 @@ export default function ImproveTab() {
     consume("improve");
   }, [incoming]);
 
+  useEffect(() => () => abortRef.current?.abort(), []);
+
   const improve = async () => {
     if (!code.trim() || loading) return;
+    abortRef.current?.abort();
+    abortRef.current = new AbortController();
     setLoading(true);
     setError("");
     setResult(null);
+    setStreamText("");
     try {
-      setResult(await improveScript({ code, mode, language, os_profile: osProfile }));
-    } catch {
-      setError("Backend error — is the server running?");
+      for await (const chunk of streamRequest("/improve/stream",
+        { code, mode, language, os_profile: osProfile },
+        abortRef.current.signal
+      )) {
+        if (chunk.error) { setError(chunk.error); break; }
+        if (chunk.done)  { setResult(chunk.result); setStreamText(""); }
+        else             { setStreamText(prev => prev + chunk.text); }
+      }
+    } catch (e) {
+      if (e.name !== "AbortError") setError("Backend error — is the server running?");
     }
     setLoading(false);
   };
@@ -102,6 +116,18 @@ export default function ImproveTab() {
 
         {error && <div className="error-msg mt-12">{error}</div>}
       </div>
+
+      {streamText && (
+        <div className="panel">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 8 }}>
+            <span className="spinner" style={{ flexShrink: 0 }} />
+            <span className="panel-title" style={{ marginBottom: 0 }}>Improving…</span>
+          </div>
+          <pre style={{ fontSize: 11, color: "var(--text-dim)", maxHeight: 180, overflow: "auto", whiteSpace: "pre-wrap", wordBreak: "break-word" }}>
+            {streamText}
+          </pre>
+        </div>
+      )}
 
       {result && (
         <>

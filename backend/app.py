@@ -232,6 +232,68 @@ Return ONLY valid JSON with no markdown or backticks:
     return sse_response(_sse_stream(system, req.code, fallback))
 
 
+@app.post("/convert/stream")
+async def convert_stream(req: ConvertReq):
+    system = f"""You are ScriptForge AI script converter.
+Convert the code from {req.from_lang} to {req.to_lang}, preserving all functionality.
+
+Return ONLY valid JSON with no markdown or backticks:
+{{
+  "converted_code": "the complete converted code",
+  "notes": ["important behavioral difference or note"],
+  "dependencies": ["required package or tool"]
+}}"""
+    fallback = {"converted_code": "", "notes": [], "dependencies": []}
+    return sse_response(_sse_stream(system, req.code, fallback))
+
+
+@app.post("/improve/stream")
+async def improve_stream(req: ImproveReq):
+    instructions = {
+        "simplify":    "Simplify and streamline the code. Make it shorter, cleaner, and remove redundancy.",
+        "comments":    "Add thorough, helpful comments explaining every section and non-obvious line.",
+        "production":  "Make it production-ready: add error handling, input validation, logging, and follow best practices.",
+        "beginner":    "Rewrite for beginners: simple logic, verbose variable names, explain everything in comments.",
+    }
+    instruction = instructions.get(req.mode, "Improve the code.")
+    system = f"""{os_ctx(req.os_profile)}
+Language: {req.language}
+
+You are ScriptForge AI code improver. {instruction}
+
+CRITICAL: Return ONLY a single raw JSON object. No markdown, no backticks, no code fences anywhere.
+The improved_code field must contain the raw script text (use \\n for newlines inside the JSON string).
+{{
+  "improved_code": "raw script text here with \\n for newlines",
+  "changes_made": ["change 1", "change 2"]
+}}"""
+
+    async def _improve_stream():
+        accumulated = ""
+        try:
+            async with aclient.messages.stream(
+                model=MODEL, max_tokens=4096, system=system,
+                messages=[{"role": "user", "content": req.code}],
+            ) as stream:
+                async for text in stream.text_stream:
+                    accumulated += text
+                    yield f"data: {json.dumps({'text': text})}\n\n"
+            result = parse_json(accumulated, {"improved_code": accumulated, "changes_made": []})
+            # unwrap nested JSON if model wrapped improved_code in a code fence
+            ic = result.get("improved_code", "")
+            if isinstance(ic, str) and ic.strip().startswith("```"):
+                inner = parse_json(ic, {})
+                if inner.get("improved_code"):
+                    result["improved_code"] = inner["improved_code"]
+                    if not result.get("changes_made") and inner.get("changes_made"):
+                        result["changes_made"] = inner["changes_made"]
+            yield f"data: {json.dumps({'done': True, 'result': result})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return sse_response(_improve_stream())
+
+
 # ── Sandbox config ────────────────────────────────────────────────────────────
 
 SANDBOX_IMAGES = {

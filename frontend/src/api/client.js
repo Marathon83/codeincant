@@ -1,6 +1,9 @@
 import axios from "axios";
 
-const BASE = "http://127.0.0.1:8000";
+// On native (iOS/Android) the device can't reach 127.0.0.1 on the host.
+// Set VITE_API_URL in .env.production (or .env.local) to your server's IP/URL.
+// e.g. VITE_API_URL=http://192.168.1.42:8000
+const BASE = import.meta.env.VITE_API_URL ?? "http://127.0.0.1:8000";
 const api = axios.create({ baseURL: BASE });
 
 export const generateScript  = (data) => api.post("/generate", data).then(r => r.data);

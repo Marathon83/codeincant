@@ -9,6 +9,15 @@ backend/*.log
 frontend/node_modules/
 frontend/dist/
 
+# Capacitor — native build artifacts (keep ios/ and android/ project structure)
+frontend/android/.gradle/
+frontend/android/build/
+frontend/android/app/build/
+frontend/android/local.properties
+frontend/ios/App/Pods/
+frontend/ios/App/App.xcworkspace/xcuserdata/
+frontend/ios/.xcode.env.local
+
 # Environment
 backend/.env
 .env

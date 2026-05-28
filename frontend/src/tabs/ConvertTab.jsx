@@ -1,8 +1,9 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { streamRequest } from "../api/client";
 import { useTabCtx } from "../context/TabContext";
 import CodeBlock from "../components/CodeBlock";
 import SendTo from "../components/SendTo";
+import useVoice from "../hooks/useVoice";
 
 const LANGS = ["bash", "powershell", "python", "javascript", "ruby", "go", "zsh"];
 
@@ -26,6 +27,9 @@ export default function ConvertTab() {
     if (incoming.language) setFrom(incoming.language);
     consume("convert");
   }, [incoming]);
+
+  const onVoiceResult = useCallback((text) => setCode(p => p ? `${p} ${text}` : text), []);
+  const { recording, supported: voiceOk, toggle: toggleVoice } = useVoice(onVoiceResult);
 
   const swap = () => {
     setFrom(toLang);
@@ -102,6 +106,11 @@ export default function ConvertTab() {
               ? <><span className="spinner" /> Converting…</>
               : <>⇄ Convert <span style={{ color: "var(--green-dim)", fontSize: 10, marginLeft: 6 }}>Ctrl+↵</span></>}
           </button>
+          {voiceOk && (
+            <button className={`btn btn-voice${recording ? " recording" : ""}`} onClick={toggleVoice}>
+              {recording ? "⏹ Stop" : "🎤 Voice"}
+            </button>
+          )}
         </div>
 
         {error && <div className="error-msg mt-12">{error}</div>}

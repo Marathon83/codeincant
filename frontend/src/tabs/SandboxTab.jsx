@@ -1,6 +1,7 @@
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { streamRequest } from "../api/client";
 import CodeBlock from "../components/CodeBlock";
+import useVoice from "../hooks/useVoice";
 
 const LANGS = ["bash", "python", "javascript", "ruby"];
 const MAX_HISTORY = 5;
@@ -227,6 +228,12 @@ export default function SandboxTab() {
   const abortRef  = useRef(null);
   const stdoutRef = useRef("");
 
+  const onVoiceResult = useCallback((text) => {
+    setStdin(p => p ? `${p} ${text}` : text);
+    setShowStdin(true);
+  }, []);
+  const { recording, supported: voiceOk, toggle: toggleVoice } = useVoice(onVoiceResult);
+
   useEffect(() => () => abortRef.current?.abort(), []);
 
   const switchLang = (l) => {
@@ -374,6 +381,11 @@ export default function SandboxTab() {
               <>▶ Run in Sandbox <span style={{ color: "var(--green-dim)", fontSize: 10, marginLeft: 6 }}>Ctrl+↵</span></>
             )}
           </button>
+          {voiceOk && (
+            <button className={`btn btn-voice${recording ? " recording" : ""}`} onClick={toggleVoice} title="Dictate stdin">
+              {recording ? "⏹ Stop" : "🎤 Stdin"}
+            </button>
+          )}
           <button className="btn btn-secondary" onClick={() => { setCode(EXAMPLES[lang] || ""); setResult(null); }}>
             Reset Example
           </button>

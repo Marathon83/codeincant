@@ -23,18 +23,31 @@ export const BASE = resolveBase();
 
 // Async generator for SSE streaming endpoints.
 // Yields { text } chunks while streaming, then { done: true, result } when complete.
+// Throws with a human-readable message on HTTP errors (including 401 / 429).
 export async function* streamRequest(endpoint, data, signal) {
+  const apiKey = localStorage.getItem("scriptforge_api_key") || "";
   const response = await fetch(`${BASE}${endpoint}`, {
     method: "POST",
-    headers: { "Content-Type": "application/json" },
+    headers: {
+      "Content-Type": "application/json",
+      ...(apiKey && { "X-Api-Key": apiKey }),
+    },
     body: JSON.stringify(data),
     signal,
   });
-  if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
-  const reader = response.body.getReader();
+  if (!response.ok) {
+    let msg = `HTTP ${response.status}`;
+    try {
+      const body = await response.json();
+      if (body.detail) msg = body.detail;
+    } catch {}
+    throw new Error(msg);
+  }
+
+  const reader  = response.body.getReader();
   const decoder = new TextDecoder();
-  let buffer = "";
+  let buffer    = "";
 
   while (true) {
     const { done, value } = await reader.read();

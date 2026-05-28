@@ -471,6 +471,51 @@ select option {
 .mb-12 { margin-bottom: 12px; }
 .mb-16 { margin-bottom: 16px; }
 
+/* ── Modal ── */
+.modal-overlay {
+  align-items: center;
+  background: rgba(0, 0, 0, 0.75);
+  display: flex;
+  inset: 0;
+  justify-content: center;
+  padding: 20px;
+  position: fixed;
+  z-index: 1000;
+}
+
+.modal {
+  background: var(--bg2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  max-width: 480px;
+  padding: 24px;
+  width: 100%;
+}
+
+.modal-title {
+  color: var(--green);
+  font-size: 13px;
+  letter-spacing: 2px;
+  margin-bottom: 16px;
+  text-transform: uppercase;
+}
+
+/* ── No-key badge ── */
+.no-key-badge {
+  background: rgba(255, 51, 51, 0.1);
+  border: 1px solid rgba(255, 51, 51, 0.4);
+  border-radius: 3px;
+  color: var(--red);
+  cursor: pointer;
+  font-size: 11px;
+  letter-spacing: 0.5px;
+  padding: 4px 8px;
+}
+
+.no-key-badge:hover {
+  background: rgba(255, 51, 51, 0.18);
+}
+
 /* ── Mobile ── */
 @media (max-width: 640px) {
   .app {

@@ -296,7 +296,7 @@ export default function SandboxTab({ isActive = false }) {
         }
       }
     } catch (e) {
-      if (e.name !== "AbortError") setError("Backend error — is the server running?");
+      if (e.name !== "AbortError") setError(e.message || "Backend error — is the server running?");
     }
     setLoading(false);
   };

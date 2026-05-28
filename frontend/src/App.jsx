@@ -1,7 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import "./index.css";
 import { TabProvider } from "./context/TabContext";
 import TabBar from "./components/TabBar";
+import ApiKeyModal from "./components/ApiKeyModal";
 import GenerateTab    from "./tabs/GenerateTab";
 import DebugTab       from "./tabs/DebugTab";
 import AnalyzeTab     from "./tabs/AnalyzeTab";
@@ -26,6 +27,17 @@ const TABS = [
 
 export default function App() {
   const [tab, setTab] = useState("generate");
+  const [showKeyModal, setShowKeyModal] = useState(false);
+  const [hasKey, setHasKey] = useState(() => !!localStorage.getItem("scriptforge_api_key"));
+
+  useEffect(() => {
+    if (!hasKey) setShowKeyModal(true);
+  }, []);
+
+  const handleModalClose = () => {
+    setShowKeyModal(false);
+    setHasKey(!!localStorage.getItem("scriptforge_api_key"));
+  };
 
   return (
     <TabProvider onNavigate={setTab}>
@@ -33,6 +45,25 @@ export default function App() {
         <header className="app-header">
           <h1>ScriptForge AI</h1>
           <span className="tagline">// AI-powered script generation &amp; analysis</span>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
+            {!hasKey && (
+              <span
+                className="no-key-badge"
+                onClick={() => setShowKeyModal(true)}
+                title="No API key set — click to add"
+              >
+                ⚠ No API key
+              </span>
+            )}
+            <button
+              className="btn btn-secondary btn-icon"
+              onClick={() => setShowKeyModal(true)}
+              title="Settings — Anthropic API Key"
+              style={{ fontSize: 16, padding: "4px 10px" }}
+            >
+              ⚙
+            </button>
+          </div>
         </header>
         <div className="app-body">
           <TabBar active={tab} onChange={setTab} />
@@ -45,6 +76,13 @@ export default function App() {
           </div>
         </div>
       </div>
+
+      {showKeyModal && (
+        <ApiKeyModal
+          onClose={handleModalClose}
+          isRequired={!hasKey}
+        />
+      )}
     </TabProvider>
   );
 }

@@ -32,7 +32,7 @@ export default function AnalyzeTab({ isActive = false }) {
   useEffect(() => () => abortRef.current?.abort(), []);
 
   const onVoiceResult = useCallback((text) => setCode(p => p ? `${p} ${text}` : text), []);
-  const { recording, supported: voiceOk, toggle: toggleVoice } = useVoice(onVoiceResult);
+  const { recording, supported: voiceOk, toggle: toggleVoice, voiceError } = useVoice(onVoiceResult);
 
   const analyze = async () => {
     if (!code.trim() || loading) return;
@@ -104,6 +104,10 @@ export default function AnalyzeTab({ isActive = false }) {
             </button>
           )}
         </div>
+
+        {voiceError && (
+          <div className="error-msg mt-12">{voiceError}</div>
+        )}
 
         {error && (
           <div className="error-msg mt-12" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>

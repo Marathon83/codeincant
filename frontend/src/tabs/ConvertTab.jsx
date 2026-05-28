@@ -28,8 +28,10 @@ export default function ConvertTab({ isActive = false }) {
     consume("convert");
   }, [incoming]);
 
+  useEffect(() => () => abortRef.current?.abort(), []);
+
   const onVoiceResult = useCallback((text) => setCode(p => p ? `${p} ${text}` : text), []);
-  const { recording, supported: voiceOk, toggle: toggleVoice } = useVoice(onVoiceResult);
+  const { recording, supported: voiceOk, toggle: toggleVoice, voiceError } = useVoice(onVoiceResult);
 
   const swap = () => {
     setFrom(toLang);
@@ -118,6 +120,10 @@ export default function ConvertTab({ isActive = false }) {
             </button>
           )}
         </div>
+
+        {voiceError && (
+          <div className="error-msg mt-12">{voiceError}</div>
+        )}
 
         {error && (
           <div className="error-msg mt-12" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>

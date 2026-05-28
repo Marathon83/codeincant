@@ -1,7 +1,8 @@
 import { useState, useRef, useCallback } from "react";
 
 export default function useVoice(onResult) {
-  const [recording, setRecording] = useState(false);
+  const [recording, setRecording]   = useState(false);
+  const [voiceError, setVoiceError] = useState("");
   const [supported] = useState(() => "webkitSpeechRecognition" in window || "SpeechRecognition" in window);
   const recRef = useRef(null);
 
@@ -17,7 +18,12 @@ export default function useVoice(onResult) {
       onResult(text);
     };
     rec.onend = () => setRecording(false);
-    rec.onerror = () => setRecording(false);
+    rec.onerror = (e) => {
+      setRecording(false);
+      const msg = e.error === "not-allowed" ? "Microphone access denied" : "Voice input failed";
+      setVoiceError(msg);
+      setTimeout(() => setVoiceError(""), 2500);
+    };
     recRef.current = rec;
     rec.start();
     setRecording(true);
@@ -32,5 +38,5 @@ export default function useVoice(onResult) {
     recording ? stop() : start();
   }, [recording, start, stop]);
 
-  return { recording, supported, toggle };
+  return { recording, supported, toggle, voiceError };
 }

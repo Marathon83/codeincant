@@ -32,16 +32,22 @@ export default function DebugTab({ isActive = false }) {
     if (incoming.code)     setCode(incoming.code);
     if (incoming.language) setLanguage(incoming.language);
     if (incoming.error)    setErrorText(incoming.error);
+    const shouldAutoRun = incoming.autoRun;
     consume("debug");
+    if (shouldAutoRun) setTimeout(() => runRef.current?.(), 50);
   }, [incoming]);
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
   const onVoiceResult = useCallback((text) => setErrorText(p => p ? `${p} ${text}` : text), []);
-  const { recording, supported: voiceOk, toggle: toggleVoice } = useVoice(onVoiceResult);
+  const { recording, supported: voiceOk, toggle: toggleVoice, voiceError } = useVoice(onVoiceResult);
 
   const handleImage = (file) => {
     if (!file) return;
+    if (file.size > 4 * 1024 * 1024) {
+      setError("Screenshot is too large (max 4 MB). Please resize it first.");
+      return;
+    }
     setShotType(file.type || "image/png");
     const reader = new FileReader();
     reader.onload = (e) => {
@@ -152,6 +158,10 @@ export default function DebugTab({ isActive = false }) {
             </button>
           )}
         </div>
+
+        {voiceError && (
+          <div className="error-msg mt-12">{voiceError}</div>
+        )}
 
         {error && (
           <div className="error-msg mt-12" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>

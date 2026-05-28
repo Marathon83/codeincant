@@ -1,5 +1,6 @@
 import { useState, useRef, useEffect, useCallback } from "react";
 import { streamRequest } from "../api/client";
+import { useTabCtx } from "../context/TabContext";
 import CodeBlock from "../components/CodeBlock";
 import useVoice from "../hooks/useVoice";
 
@@ -84,7 +85,7 @@ function CopyBtn({ text }) {
         navigator.clipboard.writeText(text).then(() => {
           setOk(true);
           setTimeout(() => setOk(false), 1500);
-        })
+        }).catch(() => {})
       }
     >
       {ok ? "✓" : "Copy"}
@@ -228,11 +229,21 @@ export default function SandboxTab({ isActive = false }) {
   const abortRef  = useRef(null);
   const stdoutRef = useRef("");
 
+  const { inbox, consume, sendToTab } = useTabCtx();
+  const incoming = inbox["sandbox"];
+  useEffect(() => {
+    if (!incoming) return;
+    if (incoming.code)     setCode(incoming.code);
+    if (incoming.language) setLang(incoming.language);
+    setResult(null);
+    consume("sandbox");
+  }, [incoming]);
+
   const onVoiceResult = useCallback((text) => {
     setStdin(p => p ? `${p} ${text}` : text);
     setShowStdin(true);
   }, []);
-  const { recording, supported: voiceOk, toggle: toggleVoice } = useVoice(onVoiceResult);
+  const { recording, supported: voiceOk, toggle: toggleVoice, voiceError } = useVoice(onVoiceResult);
 
   useEffect(() => () => abortRef.current?.abort(), []);
 
@@ -402,6 +413,10 @@ export default function SandboxTab({ isActive = false }) {
           )}
         </div>
 
+        {voiceError && (
+          <div className="error-msg mt-12">{voiceError}</div>
+        )}
+
         {error && (
           <div className="error-msg mt-12" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>
             <span>{error}</span>
@@ -454,13 +469,30 @@ export default function SandboxTab({ isActive = false }) {
           )}
 
           {!result.blocked && (
-            <TerminalOutput
-              stdout={result.stdout}
-              stderr={result.stderr}
-              exitCode={result.exit_code}
-              durationMs={result.duration_ms}
-              killed={result.killed}
-            />
+            <>
+              <TerminalOutput
+                stdout={result.stdout}
+                stderr={result.stderr}
+                exitCode={result.exit_code}
+                durationMs={result.duration_ms}
+                killed={result.killed}
+              />
+              {result.exit_code !== 0 && !result.killed && (
+                <div style={{ marginTop: 10 }}>
+                  <button
+                    className="btn btn-secondary"
+                    onClick={() => sendToTab("debug", {
+                      code,
+                      language: lang,
+                      error: result.stderr || `Exit code ${result.exit_code}`,
+                      autoRun: true,
+                    })}
+                  >
+                    🔍 Auto-Debug in AI Debugger
+                  </button>
+                </div>
+              )}
+            </>
           )}
         </>
       )}

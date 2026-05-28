@@ -35,7 +35,7 @@ export default function GenerateTab({ isActive = false }) {
   useEffect(() => () => { abortRef.current?.abort(); simAbortRef.current?.abort(); }, []);
 
   const onVoiceResult = useCallback((text) => setPrompt(p => p ? `${p} ${text}` : text), []);
-  const { recording, supported: voiceOk, toggle: toggleVoice } = useVoice(onVoiceResult);
+  const { recording, supported: voiceOk, toggle: toggleVoice, voiceError } = useVoice(onVoiceResult);
 
   const generate = async () => {
     if (!prompt.trim() || loading) return;
@@ -140,6 +140,10 @@ export default function GenerateTab({ isActive = false }) {
             </button>
           )}
         </div>
+
+        {voiceError && (
+          <div className="error-msg mt-12">{voiceError}</div>
+        )}
 
         {error && (
           <div className="error-msg mt-12" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12 }}>

@@ -137,7 +137,7 @@ export default function CheatSheetsTab({ isActive = false }) {
     if (!focusedParam) return;
     setParams(p => ({ ...p, [focusedParam]: p[focusedParam] ? `${p[focusedParam]} ${text}` : text }));
   }, [focusedParam]);
-  const { recording, supported: voiceOk, toggle: toggleVoice } = useVoice(onVoiceResult);
+  const { recording, supported: voiceOk, toggle: toggleVoice, voiceError } = useVoice(onVoiceResult);
 
   const selectCategory = (cat) => {
     setCategory(cat);
@@ -278,6 +278,10 @@ export default function CheatSheetsTab({ isActive = false }) {
           <p style={{ fontSize: 11, color: "var(--text-dim)", marginTop: 6 }}>
             Click a parameter field to enable voice input for it.
           </p>
+        )}
+
+        {voiceError && (
+          <div className="error-msg mt-12">{voiceError}</div>
         )}
 
         {error && (

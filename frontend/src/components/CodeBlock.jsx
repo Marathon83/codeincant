@@ -56,7 +56,7 @@ export default function CodeBlock({ code, language = "shell", readOnly = true, o
     navigator.clipboard.writeText(code || "").then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
-    });
+    }).catch(() => {});
   };
 
   const copyForPaste = () => {
@@ -65,7 +65,7 @@ export default function CodeBlock({ code, language = "shell", readOnly = true, o
     navigator.clipboard.writeText(safe).then(() => {
       setPasteCopied(true);
       setTimeout(() => setPasteCopied(false), 1500);
-    });
+    }).catch(() => {});
   };
 
   const download = () => {
@@ -74,7 +74,7 @@ export default function CodeBlock({ code, language = "shell", readOnly = true, o
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement("a");
     a.href = url; a.download = `script.${ext}`; a.click();
-    URL.revokeObjectURL(url);
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 
   const toolbar = (

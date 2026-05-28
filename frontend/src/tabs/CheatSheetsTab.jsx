@@ -2,6 +2,7 @@ import { useState, useRef, useEffect, useCallback } from "react";
 import { streamRequest } from "../api/client";
 import OsProfileSelector from "../components/OsProfileSelector";
 import CodeBlock from "../components/CodeBlock";
+import SendTo from "../components/SendTo";
 import useVoice from "../hooks/useVoice";
 
 const CHEATSHEET_PARAMS = {
@@ -312,6 +313,7 @@ export default function CheatSheetsTab({ isActive = false }) {
             {result.explanation && (
               <p style={{ fontSize: 13, lineHeight: 1.7, marginTop: 12 }}>{result.explanation}</p>
             )}
+            <SendTo code={result.command_string} language="shell" />
           </div>
 
           {result.examples?.length > 0 && (

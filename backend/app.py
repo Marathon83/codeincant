@@ -28,7 +28,6 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
-client  = anthropic.Anthropic(api_key=_api_key)
 aclient = anthropic.AsyncAnthropic(api_key=_api_key)
 MODEL = "claude-sonnet-4-6"
 
@@ -93,6 +92,7 @@ class DebugReq(BaseModel):
 class AnalyzeReq(BaseModel):
     code: str
     os_profile: str = "linux"
+    language: str = "shell"
 
 
 class ConvertReq(BaseModel):
@@ -301,6 +301,7 @@ You are ScriptForge AI debugger. Analyze the code and error, then return ONLY va
 @app.post("/analyze/stream")
 async def analyze_stream(req: AnalyzeReq):
     system = f"""{os_ctx(req.os_profile)}
+Language: {req.language}
 
 You are ScriptForge AI reverse analyzer. Thoroughly analyze the provided code.
 
@@ -505,10 +506,14 @@ async def sandbox_stream(req: SandboxReq):
                 proc.stdin.write(req.stdin.encode())
             proc.stdin.close()
 
+            kill_fired = False
+
             async def _kill_after(secs):
+                nonlocal kill_fired
                 await asyncio.sleep(secs)
                 if proc.returncode is None:
                     proc.kill()
+                    kill_fired = True
 
             kill_task = asyncio.create_task(_kill_after(timeout))
 
@@ -516,9 +521,10 @@ async def sandbox_stream(req: SandboxReq):
                 yield f"data: {json.dumps({'stdout_chunk': line.decode(errors='replace')})}\n\n"
 
             kill_task.cancel()
-            killed = proc.returncode is None or (proc.returncode == -9)
+            await asyncio.gather(kill_task, return_exceptions=True)
             stderr_bytes = await proc.stderr.read()
             await proc.wait()
+            killed = kill_fired
             exit_code = proc.returncode if proc.returncode is not None else -1
             stderr = (
                 f"[sandbox] Process killed — exceeded {timeout}s timeout"

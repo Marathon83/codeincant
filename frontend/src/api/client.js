@@ -38,7 +38,10 @@ export async function* streamRequest(endpoint, data, signal) {
 
   while (true) {
     const { done, value } = await reader.read();
-    if (done) break;
+    if (done) {
+      buffer += decoder.decode();
+      break;
+    }
     buffer += decoder.decode(value, { stream: true });
     const parts = buffer.split("\n\n");
     buffer = parts.pop();
@@ -47,5 +50,8 @@ export async function* streamRequest(endpoint, data, signal) {
         try { yield JSON.parse(part.slice(6)); } catch { /* skip malformed */ }
       }
     }
+  }
+  if (buffer.startsWith("data: ")) {
+    try { yield JSON.parse(buffer.slice(6)); } catch { /* skip malformed */ }
   }
 }

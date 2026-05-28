@@ -44,7 +44,7 @@ export default function AnalyzeTab({ isActive = false }) {
     setStreamText("");
     try {
       for await (const chunk of streamRequest("/analyze/stream",
-        { code, os_profile: osProfile },
+        { code, os_profile: osProfile, language },
         abortRef.current.signal
       )) {
         if (chunk.error) { setError(chunk.error); break; }

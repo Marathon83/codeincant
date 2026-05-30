@@ -8,6 +8,8 @@ const TABS = [
   { id: "cheatsheet", label: "Cheat Sheets" },
   { id: "tutor",      label: "AI Tutor" },
   { id: "sandbox",    label: "Sandbox" },
+  { id: "security",   label: "Security" },
+  { id: "workflow",   label: "Workflow" },
 ];
 
 export default function TabBar({ active, onChange }) {

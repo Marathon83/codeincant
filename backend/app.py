@@ -183,6 +183,16 @@ class SandboxReq(BaseModel):
     timeout: int = 15
     stdin: str = ""
 
+class SecurityReq(BaseModel):
+    code: str
+    language: str = "bash"
+    os_profile: str = "linux"
+
+class WorkflowReq(BaseModel):
+    description: str
+    os_profile: str = "linux"
+    step_count: int = 0
+
 # ── Sandbox config ─────────────────────────────────────────────────────────────
 SANDBOX_IMAGES = {
     "bash":       "alpine:latest",
@@ -628,3 +638,69 @@ async def sandbox_stream(request: Request, req: SandboxReq, api_key: str = Depen
         yield f"data: {json.dumps({'done': True, 'exit_code': exit_code, 'killed': killed, 'stderr': stderr, 'duration_ms': duration_ms, 'warnings': warnings})}\n\n"
 
     return sse_response(_gen())
+
+
+@app.post("/security/stream")
+async def security_stream(request: Request, req: SecurityReq, api_key: str = Depends(_require_key)):
+    await _check_ai_rate(request)
+    system = f"""{os_ctx(req.os_profile)}
+Language: {req.language}
+
+You are ScriptForge AI Security Scanner. Perform thorough static security analysis of the provided script.
+
+Return ONLY valid JSON with no markdown or backticks:
+{{
+  "summary": "one-sentence security posture summary",
+  "risk_level": "low",
+  "score": 8,
+  "findings": [
+    {{
+      "severity": "high",
+      "title": "short vulnerability title",
+      "description": "detailed description of the issue",
+      "line_hint": "line 12: eval $input",
+      "remediation": "how to fix this"
+    }}
+  ],
+  "passed": ["check that passed with no issues"]
+}}
+risk_level must be exactly: low, medium, or high.
+score is 0-10 where 10 is perfectly secure and 0 is critically vulnerable.
+severity must be exactly: critical, high, medium, low, or info.
+Cover: injection, privilege escalation, unsafe file ops, hardcoded secrets, race conditions, network exposure, input validation.
+If no issues found, return empty findings array with score 10."""
+    user_content = f"Scan this {req.language} script:\n```{req.language}\n{req.code}\n```"
+    fallback = {"summary": "", "risk_level": "low", "score": 10, "findings": [], "passed": []}
+    return sse_response(_sse_stream(_client(api_key), system, user_content, fallback, max_tokens=2048))
+
+
+@app.post("/workflow/stream")
+async def workflow_stream(request: Request, req: WorkflowReq, api_key: str = Depends(_require_key)):
+    await _check_ai_rate(request)
+    step_hint = f"Create exactly {req.step_count} steps." if req.step_count > 0 else "Use as many steps as needed (typically 3-7)."
+    system = f"""{os_ctx(req.os_profile)}
+
+You are ScriptForge AI Workflow Builder. Turn a natural-language description into a structured multi-step automation workflow.
+{step_hint}
+
+Return ONLY valid JSON with no markdown or backticks:
+{{
+  "title": "Workflow title",
+  "summary": "What this workflow accomplishes",
+  "language": "bash",
+  "steps": [
+    {{
+      "title": "Step title",
+      "description": "What this step does",
+      "script": "the complete script for this step",
+      "language": "bash"
+    }}
+  ],
+  "combined_script": "the full workflow as a single runnable script with comments separating steps"
+}}
+language should match the OS profile (bash for linux/macos/kali, powershell for windows).
+Each step script must be complete and independently runnable where possible.
+Add error handling (set -euo pipefail for bash, $ErrorActionPreference for powershell) in combined_script."""
+    user_content = f"Build a workflow for:\n{req.description}"
+    fallback = {"title": "Workflow", "summary": "", "language": "bash", "steps": [], "combined_script": ""}
+    return sse_response(_sse_stream(_client(api_key), system, user_content, fallback, max_tokens=4096))

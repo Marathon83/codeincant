@@ -26,6 +26,9 @@ export default function SendTo({ code, language, error = "" }) {
       <button className="btn btn-secondary btn-icon" onClick={() => sendToTab("tutor", { code, language })}>
         🎓 Tutor
       </button>
+      <button className="btn btn-secondary btn-icon" onClick={() => sendToTab("security", { code, language })}>
+        🔒 Scan
+      </button>
     </div>
   );
 }

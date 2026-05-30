@@ -52,5 +52,9 @@
 		<key>NSAllowsArbitraryLoads</key>
 		<true/>
 	</dict>
+	<key>NSMicrophoneUsageDescription</key>
+	<string>ScriptForge AI uses the microphone for voice-to-script input.</string>
+	<key>NSSpeechRecognitionUsageDescription</key>
+	<string>ScriptForge AI uses speech recognition to convert your spoken words into scripts.</string>
 </dict>
 </plist>

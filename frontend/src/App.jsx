@@ -11,7 +11,9 @@ import ImproveTab     from "./tabs/ImproveTab";
 import SimulateTab    from "./tabs/SimulateTab";
 import CheatSheetsTab from "./tabs/CheatSheetsTab";
 import TutorTab       from "./tabs/TutorTab";
-import SandboxTab     from "./tabs/SandboxTab";
+import SandboxTab          from "./tabs/SandboxTab";
+import SecurityScannerTab  from "./tabs/SecurityScannerTab";
+import WorkflowBuilderTab  from "./tabs/WorkflowBuilderTab";
 
 const TABS = [
   { id: "generate",   Component: GenerateTab },
@@ -23,6 +25,8 @@ const TABS = [
   { id: "cheatsheet", Component: CheatSheetsTab },
   { id: "tutor",      Component: TutorTab },
   { id: "sandbox",    Component: SandboxTab },
+  { id: "security",   Component: SecurityScannerTab },
+  { id: "workflow",   Component: WorkflowBuilderTab },
 ];
 
 export default function App() {

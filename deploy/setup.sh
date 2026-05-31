@@ -1,6 +1,7 @@
 #!/bin/bash
 # ScriptForge AI — Server Setup Script
 # Tested on Ubuntu 22.04 LTS. Run as root on a fresh VPS.
+# Works on Oracle Cloud Free Tier (ARM Ampere A1 recommended).
 #
 # Usage:
 #   curl -fsSL https://raw.githubusercontent.com/Marathon83/scriptforge-ai/main/deploy/setup.sh | bash
@@ -49,7 +50,20 @@ docker pull node:20-alpine
 docker pull ruby:3-alpine
 echo "Images pulled."
 
-echo "=== [7/7] Install systemd service and nginx config ==="
+echo "=== [7/8] Open firewall ports (Oracle Cloud Ubuntu blocks 80/443 by default) ==="
+# Oracle Cloud's Ubuntu images ship with iptables rules that block all ports
+# except 22. These rules persist across reboots via iptables-persistent.
+if iptables -L INPUT -n | grep -q "DROP\|REJECT"; then
+    iptables -I INPUT 6 -m state --state NEW -p tcp --dport 80  -j ACCEPT
+    iptables -I INPUT 6 -m state --state NEW -p tcp --dport 443 -j ACCEPT
+    apt-get install -y -q iptables-persistent
+    netfilter-persistent save
+    echo "Firewall rules saved."
+else
+    echo "No blocking rules detected — skipping iptables update."
+fi
+
+echo "=== [8/8] Install systemd service and nginx config ==="
 cp "${APP_DIR}/deploy/scriptforge.service" /etc/systemd/system/
 systemctl daemon-reload
 systemctl enable scriptforge

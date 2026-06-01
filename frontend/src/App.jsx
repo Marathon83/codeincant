@@ -3,6 +3,7 @@ import "./index.css";
 import { TabProvider } from "./context/TabContext";
 import TabBar from "./components/TabBar";
 import ApiKeyModal from "./components/ApiKeyModal";
+import ErrorBoundary from "./components/ErrorBoundary";
 import GenerateTab    from "./tabs/GenerateTab";
 import DebugTab       from "./tabs/DebugTab";
 import AnalyzeTab     from "./tabs/AnalyzeTab";
@@ -76,7 +77,9 @@ export default function App() {
           <div className="tab-content">
             {TABS.map(({ id, Component }) => (
               <div key={id} style={{ display: id === tab ? "block" : "none" }}>
-                <Component isActive={id === tab} />
+                <ErrorBoundary>
+                  <Component isActive={id === tab} />
+                </ErrorBoundary>
               </div>
             ))}
           </div>

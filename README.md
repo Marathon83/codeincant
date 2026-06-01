@@ -2,6 +2,8 @@
 
 AI-powered script generation, debugging, analysis, and sandboxed execution — built with FastAPI and React.
 
+> **BYOK** — ScriptForge uses your own Anthropic API key, stored only in your browser. Nothing is logged or stored on the server.
+
 ![ScriptForge AI](frontend/src/assets/hero.png)
 
 ## Features
@@ -13,9 +15,12 @@ AI-powered script generation, debugging, analysis, and sandboxed execution — b
 | **Analyzer** | Reverse-engineer any script — line-by-line breakdown, security risks, dependencies |
 | **Convert** | Translate scripts between bash, Python, JavaScript, Ruby, PowerShell, and more |
 | **Improve** | Simplify, add comments, make production-ready, or rewrite for beginners |
+| **Simulate** | Dry-run a script — step-by-step breakdown, risk badge, side effects before you execute |
 | **Cheat Sheets** | Build ready-to-run commands for common tools with guided parameter selection |
 | **AI Tutor** | Learn from your own code — annotated explanations, key concepts, exercises |
 | **Sandbox** | Execute code in an isolated Docker container (no network, 128 MB RAM) |
+| **Security** | Static security scan — findings by severity, overall score, passed checks |
+| **Workflow** | Describe a multi-step task in plain English; get individual + combined scripts |
 
 ### Sandbox highlights
 - Supports **bash, Python, JavaScript (Node), Ruby**
@@ -44,7 +49,7 @@ AI-powered script generation, debugging, analysis, and sandboxed execution — b
 cd backend
 python3 -m venv venv
 source venv/bin/activate
-pip install fastapi uvicorn anthropic python-dotenv json-repair httpx[socks]
+pip install -r requirements.txt
 ```
 
 Create `backend/.env`:

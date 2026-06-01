@@ -111,6 +111,35 @@ html, body, #root {
   color: var(--green);
 }
 
+.tab-bar button[data-tooltip] {
+  position: relative;
+}
+
+.tab-bar button[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  top: calc(100% + 10px);
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--bg3);
+  border: 1px solid var(--border);
+  color: var(--text);
+  font-size: 11px;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
+  padding: 6px 10px;
+  border-radius: 4px;
+  pointer-events: none;
+  opacity: 0;
+  transition: opacity 0.15s;
+  z-index: 100;
+}
+
+.tab-bar button[data-tooltip]:hover::after {
+  opacity: 1;
+}
+
 /* ── Form elements ── */
 label {
   color: var(--text-dim);

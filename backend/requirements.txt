@@ -4,3 +4,4 @@ anthropic
 python-dotenv
 json-repair
 pydantic
+httpx[socks]

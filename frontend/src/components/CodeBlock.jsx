@@ -49,11 +49,36 @@ const MONACO_READ_OPTIONS = {
 export default function CodeBlock({ code, language = "shell", readOnly = true, onChange, height = 320 }) {
   const [copied, setCopied]           = useState(false);
   const [pastecopied, setPasteCopied] = useState(false);
+  const [pasted, setPasted]           = useState(false);
 
   const pasteRunner = PASTE_RUNNERS[language] || null;
 
+  const writeClipboard = (text) => {
+    const cap = window.Capacitor;
+    if (cap?.isNativePlatform?.()) {
+      return cap.Plugins.Clipboard.write({ string: text });
+    }
+    return navigator.clipboard.writeText(text);
+  };
+
+  const readClipboard = () => {
+    const cap = window.Capacitor;
+    if (cap?.isNativePlatform?.()) {
+      return cap.Plugins.Clipboard.read().then((r) => r.value ?? "");
+    }
+    return navigator.clipboard.readText();
+  };
+
+  const paste = () => {
+    readClipboard().then((text) => {
+      onChange && onChange(text);
+      setPasted(true);
+      setTimeout(() => setPasted(false), 1500);
+    }).catch(() => {});
+  };
+
   const copy = () => {
-    navigator.clipboard.writeText(code || "").then(() => {
+    writeClipboard(code || "").then(() => {
       setCopied(true);
       setTimeout(() => setCopied(false), 1500);
     }).catch(() => {});
@@ -62,7 +87,7 @@ export default function CodeBlock({ code, language = "shell", readOnly = true, o
   const copyForPaste = () => {
     const src  = unescape(code || "");
     const safe = `${pasteRunner} << 'SFEOF'\n${src}\nSFEOF`;
-    navigator.clipboard.writeText(safe).then(() => {
+    writeClipboard(safe).then(() => {
       setPasteCopied(true);
       setTimeout(() => setPasteCopied(false), 1500);
     }).catch(() => {});
@@ -81,6 +106,11 @@ export default function CodeBlock({ code, language = "shell", readOnly = true, o
     <div className="code-block-toolbar">
       <span className="code-block-lang">{language}</span>
       <div className="code-block-actions">
+        {!readOnly && (
+          <button className="btn btn-secondary btn-icon" onClick={paste}>
+            {pasted ? "✓ Pasted" : "⬆ Paste"}
+          </button>
+        )}
         <button className="btn btn-secondary btn-icon" onClick={copy}>{copied ? "✓ Copied" : "Copy"}</button>
         {pasteRunner && (
           <button

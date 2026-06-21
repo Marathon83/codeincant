@@ -93,12 +93,32 @@ export default function CodeBlock({ code, language = "shell", readOnly = true, o
     }).catch(() => {});
   };
 
-  const download = () => {
-    const ext = { bash: "sh", shell: "sh", powershell: "ps1", python: "py", javascript: "js" }[language] || "txt";
-    const blob = new Blob([unescape(code || "")], { type: "text/plain" });
+  const download = async () => {
+    const ext      = { bash: "sh", shell: "sh", powershell: "ps1", python: "py", javascript: "js" }[language] || "txt";
+    const filename = `script.${ext}`;
+    const content  = unescape(code || "");
+    const cap      = window.Capacitor;
+
+    if (cap?.isNativePlatform?.()) {
+      const saveFolder = localStorage.getItem("scriptforge_save_folder")?.trim() || "ScriptForge";
+      try {
+        await cap.Plugins.Filesystem.writeFile({
+          path: `${saveFolder}/${filename}`,
+          data: content,
+          directory: "DOCUMENTS",
+          encoding: "utf8",
+          recursive: true,
+        });
+        return;
+      } catch (err) {
+        console.error("Filesystem write failed:", err);
+      }
+    }
+
+    const blob = new Blob([content], { type: "text/plain" });
     const url  = URL.createObjectURL(blob);
     const a    = document.createElement("a");
-    a.href = url; a.download = `script.${ext}`; a.click();
+    a.href = url; a.download = filename; a.click();
     setTimeout(() => URL.revokeObjectURL(url), 1000);
   };
 

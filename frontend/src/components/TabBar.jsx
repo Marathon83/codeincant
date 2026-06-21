@@ -1,3 +1,6 @@
+import { useState, useCallback, useRef } from "react";
+import { createPortal } from "react-dom";
+
 const TABS = [
   { id: "generate",   label: "Generate",     tip: "Describe what you need — get a complete, production-ready script" },
   { id: "debug",      label: "Debugger",     tip: "Paste broken code + error output and get a fixed version" },
@@ -13,18 +16,44 @@ const TABS = [
 ];
 
 export default function TabBar({ active, onChange }) {
+  const [tooltip, setTooltip] = useState(null);
+  const hideTimer = useRef(null);
+
+  const showTip = useCallback((e, tip) => {
+    clearTimeout(hideTimer.current);
+    setTooltip({ text: tip, x: e.clientX, y: e.clientY + 20 });
+  }, []);
+
+  const moveTip = useCallback((e) => {
+    setTooltip((prev) => prev ? { ...prev, x: e.clientX, y: e.clientY + 20 } : prev);
+  }, []);
+
+  const hideTip = useCallback(() => {
+    hideTimer.current = setTimeout(() => setTooltip(null), 80);
+  }, []);
+
   return (
-    <div className="tab-bar">
-      {TABS.map((t) => (
-        <button
-          key={t.id}
-          className={active === t.id ? "active" : ""}
-          onClick={() => onChange(t.id)}
-          data-tooltip={t.tip}
-        >
-          {t.label}
-        </button>
-      ))}
-    </div>
+    <>
+      <div className="tab-bar">
+        {TABS.map((t) => (
+          <button
+            key={t.id}
+            className={active === t.id ? "active" : ""}
+            onClick={() => onChange(t.id)}
+            onMouseEnter={(e) => showTip(e, t.tip)}
+            onMouseMove={moveTip}
+            onMouseLeave={hideTip}
+          >
+            {t.label}
+          </button>
+        ))}
+      </div>
+      {tooltip && createPortal(
+        <div className="tab-tooltip" style={{ left: tooltip.x, top: tooltip.y }}>
+          {tooltip.text}
+        </div>,
+        document.body
+      )}
+    </>
   );
 }

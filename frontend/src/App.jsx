@@ -3,6 +3,7 @@ import "./index.css";
 import { TabProvider } from "./context/TabContext";
 import TabBar from "./components/TabBar";
 import ApiKeyModal from "./components/ApiKeyModal";
+import SettingsModal from "./components/SettingsModal";
 import AboutModal from "./components/AboutModal";
 import ErrorBoundary from "./components/ErrorBoundary";
 import GenerateTab    from "./tabs/GenerateTab";
@@ -34,6 +35,7 @@ const TABS = [
 export default function App() {
   const [tab, setTab] = useState("generate");
   const [showKeyModal, setShowKeyModal] = useState(false);
+  const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
   const [hasKey, setHasKey] = useState(() => !!localStorage.getItem("scriptforge_api_key"));
 
@@ -74,8 +76,8 @@ export default function App() {
             </button>
             <button
               className="btn btn-secondary btn-icon"
-              onClick={() => setShowKeyModal(true)}
-              title="Settings — Anthropic API Key"
+              onClick={() => setShowSettings(true)}
+              title="Settings"
               style={{ fontSize: 16, padding: "4px 10px" }}
             >
               ⚙
@@ -100,6 +102,12 @@ export default function App() {
         <ApiKeyModal
           onClose={handleModalClose}
           isRequired={!hasKey}
+        />
+      )}
+      {showSettings && (
+        <SettingsModal
+          onClose={() => { setShowSettings(false); setHasKey(!!localStorage.getItem("scriptforge_api_key")); }}
+          onKeyChange={() => setHasKey(!!localStorage.getItem("scriptforge_api_key"))}
         />
       )}
       {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}

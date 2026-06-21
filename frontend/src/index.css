@@ -111,33 +111,21 @@ html, body, #root {
   color: var(--green);
 }
 
-.tab-bar button[data-tooltip] {
-  position: relative;
-}
-
-.tab-bar button[data-tooltip]::after {
-  content: attr(data-tooltip);
-  position: absolute;
-  top: calc(100% + 10px);
-  left: 50%;
-  transform: translateX(-50%);
+.tab-tooltip {
   background: var(--bg3);
   border: 1px solid var(--border);
+  border-radius: 4px;
   color: var(--text);
+  font-family: var(--font-mono);
   font-size: 11px;
   letter-spacing: 0;
-  text-transform: none;
-  white-space: nowrap;
   padding: 6px 10px;
-  border-radius: 4px;
   pointer-events: none;
-  opacity: 0;
-  transition: opacity 0.15s;
-  z-index: 100;
-}
-
-.tab-bar button[data-tooltip]:hover::after {
-  opacity: 1;
+  position: fixed;
+  text-transform: none;
+  transform: none;
+  white-space: nowrap;
+  z-index: 1001;
 }
 
 /* ── Form elements ── */
@@ -527,6 +515,36 @@ select option {
   letter-spacing: 2px;
   margin-bottom: 16px;
   text-transform: uppercase;
+}
+
+.settings-tabs {
+  display: flex;
+  gap: 2px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 20px;
+}
+
+.settings-tabs button {
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  color: var(--text-dim);
+  cursor: pointer;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding: 6px 14px;
+  text-transform: uppercase;
+  transition: color 0.15s, border-color 0.15s;
+}
+
+.settings-tabs button:hover {
+  color: var(--text);
+}
+
+.settings-tabs button.active {
+  border-bottom-color: var(--green);
+  color: var(--green);
 }
 
 .modal-wide {

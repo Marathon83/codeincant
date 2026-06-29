@@ -28,4 +28,4 @@ rsync -av --delete dist/ "${SSH_USER}@${SERVER}:${REMOTE_DIST}/" \
 echo "==> Reloading nginx..."
 ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER}" "sudo systemctl reload nginx"
 
-echo "==> Done. Live at http://${SERVER}"
+echo "==> Done. Live at https://scriptforge.app"

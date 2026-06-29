@@ -7,11 +7,11 @@
 #   curl -fsSL https://raw.githubusercontent.com/Marathon83/scriptforge-ai/main/deploy/setup.sh | bash
 #
 # After this script:
-#   1. Point your domain's A record to this server's IP
-#   2. certbot --nginx -d yourdomain.com
-#   3. Edit /opt/scriptforge/deploy/nginx.conf — replace yourdomain.com
-#   4. Copy frontend build: rsync -av frontend/dist/ root@server:/opt/scriptforge/frontend/
-#   5. systemctl start scriptforge && systemctl status scriptforge
+#   1. Point scriptforge.app A record to this server's IP
+#   2. certbot --nginx -d scriptforge.app -d www.scriptforge.app
+#   3. Add CORS_ORIGINS to /opt/scriptforge/.env
+#   4. systemctl restart scriptforge
+#   5. bash deploy/deploy-frontend.sh  (from dev machine)
 
 set -euo pipefail
 
@@ -77,16 +77,14 @@ echo ""
 echo "======================================================"
 echo " Setup complete. Next steps:"
 echo ""
-echo " 1. Set your domain's A record → $(curl -s ifconfig.me 2>/dev/null || echo '<this server IP>')"
-echo " 2. Edit /etc/nginx/sites-available/scriptforge"
-echo "    Replace 'yourdomain.com' with your actual domain"
-echo " 3. nginx -t && systemctl reload nginx"
-echo " 4. certbot --nginx -d yourdomain.com"
-echo " 5. Set CORS_ORIGINS in /opt/scriptforge/.env:"
-echo "    echo 'CORS_ORIGINS=https://yourdomain.com' >> ${APP_DIR}/.env"
-echo " 6. Build frontend on your dev machine:"
-echo "    cd frontend && VITE_API_URL=https://yourdomain.com npm run build"
-echo "    rsync -av dist/ root@<server-ip>:${APP_DIR}/frontend/"
-echo " 7. systemctl start scriptforge"
-echo " 8. curl https://yourdomain.com/health  # should return {\"status\":\"ok\"}"
+echo " 1. Set scriptforge.app A record → $(curl -s ifconfig.me 2>/dev/null || echo '<this server IP>')"
+echo " 2. nginx -t && systemctl reload nginx"
+echo " 3. certbot --nginx -d scriptforge.app -d www.scriptforge.app"
+echo " 4. Set CORS_ORIGINS in /opt/scriptforge/.env:"
+echo "    echo 'CORS_ORIGINS=https://scriptforge.app,https://www.scriptforge.app' >> ${APP_DIR}/.env"
+echo " 5. Restart backend to pick up new CORS_ORIGINS:"
+echo "    systemctl restart scriptforge"
+echo " 6. Build and deploy frontend from your dev machine:"
+echo "    bash deploy/deploy-frontend.sh"
+echo " 7. curl https://scriptforge.app/health  # should return {\"status\":\"ok\"}"
 echo "======================================================"

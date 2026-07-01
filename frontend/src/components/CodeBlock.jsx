@@ -100,7 +100,7 @@ export default function CodeBlock({ code, language = "shell", readOnly = true, o
     const cap      = window.Capacitor;
 
     if (cap?.isNativePlatform?.()) {
-      const saveFolder = localStorage.getItem("scriptforge_save_folder")?.trim() || "ScriptForge";
+      const saveFolder = localStorage.getItem("codeincant_save_folder")?.trim() || "CodeIncant";
       try {
         await cap.Plugins.Filesystem.writeFile({
           path: `${saveFolder}/${filename}`,

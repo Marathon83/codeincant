@@ -37,7 +37,7 @@ export default function App() {
   const [showKeyModal, setShowKeyModal] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const [showAbout, setShowAbout] = useState(false);
-  const [hasKey, setHasKey] = useState(() => !!localStorage.getItem("scriptforge_api_key"));
+  const [hasKey, setHasKey] = useState(() => !!localStorage.getItem("codeincant_api_key"));
 
   useEffect(() => {
     // eslint-disable-next-line react-hooks/set-state-in-effect
@@ -47,14 +47,14 @@ export default function App() {
 
   const handleModalClose = () => {
     setShowKeyModal(false);
-    setHasKey(!!localStorage.getItem("scriptforge_api_key"));
+    setHasKey(!!localStorage.getItem("codeincant_api_key"));
   };
 
   return (
     <TabProvider onNavigate={setTab}>
       <div className="app">
         <header className="app-header">
-          <h1>ScriptForge AI</h1>
+          <h1>CodeIncant</h1>
           <span className="tagline">// AI-powered script generation &amp; analysis</span>
           <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 10 }}>
             {!hasKey && (
@@ -106,8 +106,8 @@ export default function App() {
       )}
       {showSettings && (
         <SettingsModal
-          onClose={() => { setShowSettings(false); setHasKey(!!localStorage.getItem("scriptforge_api_key")); }}
-          onKeyChange={() => setHasKey(!!localStorage.getItem("scriptforge_api_key"))}
+          onClose={() => { setShowSettings(false); setHasKey(!!localStorage.getItem("codeincant_api_key")); }}
+          onKeyChange={() => setHasKey(!!localStorage.getItem("codeincant_api_key"))}
         />
       )}
       {showAbout && <AboutModal onClose={() => setShowAbout(false)} />}

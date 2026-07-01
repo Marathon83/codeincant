@@ -25,7 +25,7 @@ export const BASE = resolveBase();
 // Yields { text } chunks while streaming, then { done: true, result } when complete.
 // Throws with a human-readable message on HTTP errors (including 401 / 429).
 export async function* streamRequest(endpoint, data, signal) {
-  const apiKey = localStorage.getItem("scriptforge_api_key") || "";
+  const apiKey = localStorage.getItem("codeincant_api_key") || "";
   const response = await fetch(`${BASE}${endpoint}`, {
     method: "POST",
     headers: {

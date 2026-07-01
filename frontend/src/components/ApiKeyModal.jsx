@@ -1,7 +1,7 @@
 import { useState } from "react";
 
 export default function ApiKeyModal({ onClose, isRequired = false }) {
-  const stored        = localStorage.getItem("scriptforge_api_key") || "";
+  const stored        = localStorage.getItem("codeincant_api_key") || "";
   const [key, setKey] = useState(stored);
   const [saved, setSaved] = useState(false);
 
@@ -9,13 +9,13 @@ export default function ApiKeyModal({ onClose, isRequired = false }) {
 
   const save = () => {
     if (!valid) return;
-    localStorage.setItem("scriptforge_api_key", key.trim());
+    localStorage.setItem("codeincant_api_key", key.trim());
     setSaved(true);
     setTimeout(() => { setSaved(false); onClose?.(); }, 700);
   };
 
   const remove = () => {
-    localStorage.removeItem("scriptforge_api_key");
+    localStorage.removeItem("codeincant_api_key");
     setKey("");
   };
 
@@ -28,7 +28,7 @@ export default function ApiKeyModal({ onClose, isRequired = false }) {
         <div className="modal-title">Anthropic API Key</div>
 
         <p style={{ fontSize: 13, lineHeight: 1.75, marginBottom: 16, color: "var(--text)" }}>
-          ScriptForge uses your own Anthropic API key — stored only in your browser and sent with
+          CodeIncant uses your own Anthropic API key — stored only in your browser and sent with
           each request. It is never logged or stored on the server.
         </p>
 

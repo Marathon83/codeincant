@@ -17,7 +17,7 @@ FRONTEND_DIR="$(dirname "$0")/../frontend"
 
 echo "==> Building frontend..."
 cd "$FRONTEND_DIR"
-npm run build
+VITE_API_URL=https://codeincant.dev npm run build
 
 echo "==> Syncing dist to server..."
 # Trailing slash on source copies contents, not the directory itself —
@@ -28,4 +28,4 @@ rsync -av --delete dist/ "${SSH_USER}@${SERVER}:${REMOTE_DIST}/" \
 echo "==> Reloading nginx..."
 ssh -i "$SSH_KEY" "${SSH_USER}@${SERVER}" "sudo systemctl reload nginx"
 
-echo "==> Done. Live at https://scriptforge.app"
+echo "==> Done. Live at https://codeincant.dev"

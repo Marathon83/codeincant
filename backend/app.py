@@ -18,14 +18,14 @@ from collections import defaultdict
 load_dotenv()
 
 # ── Logging ────────────────────────────────────────────────────────────────────
-logger = logging.getLogger("scriptforge")
+logger = logging.getLogger("codeincant")
 logger.setLevel(logging.INFO)
 _fmt = logging.Formatter("%(asctime)s %(levelname)s %(message)s")
 _ch  = logging.StreamHandler(sys.stdout)
 _ch.setFormatter(_fmt)
 logger.addHandler(_ch)
 try:
-    _fh = RotatingFileHandler("scriptforge.log", maxBytes=10 * 1024 * 1024, backupCount=5)
+    _fh = RotatingFileHandler("codeincant.log", maxBytes=10 * 1024 * 1024, backupCount=5)
     _fh.setFormatter(_fmt)
     logger.addHandler(_fh)
 except OSError:
@@ -76,7 +76,7 @@ async def _require_key(x_api_key: str = Header(default=None)) -> str:
     if not x_api_key or not x_api_key.strip().startswith("sk-ant-"):
         raise HTTPException(
             status_code=401,
-            detail="Anthropic API key required. Add it in ScriptForge ⚙ Settings.",
+            detail="Anthropic API key required. Add it in CodeIncant ⚙ Settings.",
         )
     return x_api_key.strip()
 
@@ -330,7 +330,7 @@ async def generate_stream(request: Request, req: GenerateReq, api_key: str = Dep
     system = f"""{os_ctx(req.os_profile)}
 Language: {req.language}
 
-You are ScriptForge AI. Generate a complete, working script based on the user's description.
+You are CodeIncant. Generate a complete, working script based on the user's description.
 Keep the script focused and production-quality. Avoid unnecessary verbosity in comments.
 
 Return ONLY valid JSON with no markdown or backticks:
@@ -355,7 +355,7 @@ async def debug_stream(request: Request, req: DebugReq, api_key: str = Depends(_
     system = f"""{os_ctx(req.os_profile)}
 Language: {req.language}
 
-You are ScriptForge AI debugger. Analyze the code and error, then return ONLY valid JSON with no markdown or backticks:
+You are CodeIncant debugger. Analyze the code and error, then return ONLY valid JSON with no markdown or backticks:
 {{
   "explanation": "what caused the error",
   "fixed_code": "the corrected, complete code",
@@ -389,7 +389,7 @@ async def analyze_stream(request: Request, req: AnalyzeReq, api_key: str = Depen
     system = f"""{os_ctx(req.os_profile)}
 Language: {req.language}
 
-You are ScriptForge AI reverse analyzer. Thoroughly analyze the provided code.
+You are CodeIncant reverse analyzer. Thoroughly analyze the provided code.
 
 Return ONLY valid JSON with no markdown or backticks:
 {{
@@ -412,7 +412,7 @@ Return ONLY valid JSON with no markdown or backticks:
 @app.post("/convert/stream")
 async def convert_stream(request: Request, req: ConvertReq, api_key: str = Depends(_require_key)):
     await _check_ai_rate(request)
-    system = f"""You are ScriptForge AI script converter.
+    system = f"""You are CodeIncant script converter.
 Convert the code from {req.from_lang} to {req.to_lang}, preserving all functionality.
 
 Return ONLY valid JSON with no markdown or backticks:
@@ -439,7 +439,7 @@ async def improve_stream(request: Request, req: ImproveReq, api_key: str = Depen
     system = f"""{os_ctx(req.os_profile)}
 Language: {req.language}
 
-You are ScriptForge AI code improver. {instruction}
+You are CodeIncant code improver. {instruction}
 
 CRITICAL: Return ONLY a single raw JSON object. No markdown, no backticks, no code fences anywhere.
 The improved_code field must contain the raw script text (use \\n for newlines inside the JSON string).
@@ -483,7 +483,7 @@ async def simulate_stream(request: Request, req: SimulateReq, api_key: str = Dep
     system = f"""{os_ctx(req.os_profile)}
 Language: {req.language}
 
-You are ScriptForge AI in dry-run simulation mode. Walk through what this script does step by step WITHOUT executing it.
+You are CodeIncant in dry-run simulation mode. Walk through what this script does step by step WITHOUT executing it.
 
 Return ONLY valid JSON with no markdown or backticks:
 {{
@@ -507,7 +507,7 @@ async def cheatsheet_stream(request: Request, req: CheatReq, api_key: str = Depe
     await _check_ai_rate(request)
     system = f"""{os_ctx(req.os_profile)}
 
-You are ScriptForge AI command builder. Build a complete command for the given tool and parameters.
+You are CodeIncant command builder. Build a complete command for the given tool and parameters.
 
 Return ONLY valid JSON with no markdown or backticks:
 {{
@@ -532,7 +532,7 @@ async def tutor_stream(request: Request, req: TutorReq, api_key: str = Depends(_
         if req.level == "expert"
         else "Explain for an intermediate programmer who knows basics but wants deeper understanding."
     )
-    system = f"""You are ScriptForge AI Tutor. {level_ctx}
+    system = f"""You are CodeIncant Tutor. {level_ctx}
 Language: {req.language}
 
 Analyze the code and return ONLY valid JSON with no markdown or backticks:
@@ -650,7 +650,7 @@ async def security_stream(request: Request, req: SecurityReq, api_key: str = Dep
     system = f"""{os_ctx(req.os_profile)}
 Language: {req.language}
 
-You are ScriptForge AI Security Scanner. Perform thorough static security analysis of the provided script.
+You are CodeIncant Security Scanner. Perform thorough static security analysis of the provided script.
 
 Return ONLY valid JSON with no markdown or backticks:
 {{
@@ -684,7 +684,7 @@ async def workflow_stream(request: Request, req: WorkflowReq, api_key: str = Dep
     step_hint = f"Create exactly {req.step_count} steps." if req.step_count > 0 else "Use as many steps as needed (typically 3-7)."
     system = f"""{os_ctx(req.os_profile)}
 
-You are ScriptForge AI Workflow Builder. Turn a natural-language description into a structured multi-step automation workflow.
+You are CodeIncant Workflow Builder. Turn a natural-language description into a structured multi-step automation workflow.
 {step_hint}
 
 Return ONLY valid JSON with no markdown or backticks:

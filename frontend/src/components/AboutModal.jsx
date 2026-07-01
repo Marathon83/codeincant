@@ -2,7 +2,7 @@ export default function AboutModal({ onClose }) {
   return (
     <div className="modal-overlay" onClick={onClose}>
       <div className="modal modal-wide" onClick={(e) => e.stopPropagation()}>
-        <div className="modal-title">ScriptForge AI — Feature Overview</div>
+        <div className="modal-title">CodeIncant — Feature Overview</div>
 
         <div className="about-section">
           <div className="about-heading">Installation</div>
@@ -120,7 +120,7 @@ export default function AboutModal({ onClose }) {
         <div className="about-section">
           <div className="about-heading">Mobile</div>
           <ul>
-            <li>iOS &amp; Android builds via Capacitor (<code>com.scriptforge.ai</code>)</li>
+            <li>iOS &amp; Android builds via Capacitor (<code>com.codeincant.app</code>)</li>
             <li>Microphone + speech recognition permissions wired for both platforms</li>
             <li>SSE streaming preserved — ready to sign and deploy via Xcode / Android Studio</li>
           </ul>

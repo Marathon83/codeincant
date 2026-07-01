@@ -3,9 +3,9 @@
   --bg2: #111111;
   --bg3: #1a1a1a;
   --border: #2a2a2a;
-  --green: #00ff41;
-  --green-dim: #00cc33;
-  --green-faint: #003311;
+  --green: #ff2020;
+  --green-dim: #cc1111;
+  --green-faint: #2a0000;
   --amber: #ffb300;
   --red: #ff3333;
   --text: #cccccc;
@@ -297,7 +297,7 @@ select option {
   padding: 3px 8px;
 }
 
-.sec-badge.low    { background: rgba(0,255,65,0.08);  border: 1px solid rgba(0,255,65,0.3);  color: var(--green); }
+.sec-badge.low    { background: rgba(0,204,51,0.08);  border: 1px solid rgba(0,204,51,0.3);  color: #00cc33; }
 .sec-badge.medium { background: rgba(255,179,0,0.08); border: 1px solid rgba(255,179,0,0.3); color: var(--amber); }
 .sec-badge.high   { background: rgba(255,51,51,0.08); border: 1px solid rgba(255,51,51,0.3); color: var(--red); }
 .sec-badge.unknown { background: var(--bg3); border: 1px solid var(--border); color: var(--text-dim); }

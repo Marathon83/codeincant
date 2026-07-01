@@ -7,7 +7,7 @@
 	<key>CFBundleDevelopmentRegion</key>
 	<string>en</string>
 	<key>CFBundleDisplayName</key>
-        <string>ScriptForge AI</string>
+        <string>CodeIncant</string>
 	<key>CFBundleExecutable</key>
 	<string>$(EXECUTABLE_NAME)</string>
 	<key>CFBundleIdentifier</key>
@@ -53,8 +53,8 @@
 		<true/>
 	</dict>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>ScriptForge AI uses the microphone for voice-to-script input.</string>
+	<string>CodeIncant uses the microphone for voice-to-script input.</string>
 	<key>NSSpeechRecognitionUsageDescription</key>
-	<string>ScriptForge AI uses speech recognition to convert your spoken words into scripts.</string>
+	<string>CodeIncant uses speech recognition to convert your spoken words into scripts.</string>
 </dict>
 </plist>

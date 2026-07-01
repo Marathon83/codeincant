@@ -1,7 +1,7 @@
 <?xml version='1.0' encoding='utf-8'?>
 <resources>
-    <string name="app_name">ScriptForge AI</string>
-    <string name="title_activity_main">ScriptForge AI</string>
-    <string name="package_name">com.scriptforge.ai</string>
-    <string name="custom_url_scheme">com.scriptforge.ai</string>
+    <string name="app_name">CodeIncant</string>
+    <string name="title_activity_main">CodeIncant</string>
+    <string name="package_name">com.codeincant.app</string>
+    <string name="custom_url_scheme">com.codeincant.app</string>
 </resources>

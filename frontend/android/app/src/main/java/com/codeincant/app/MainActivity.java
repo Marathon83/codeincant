@@ -1,4 +1,4 @@
-package com.scriptforge.ai;
+package com.codeincant.app;
 
 import com.getcapacitor.BridgeActivity;
 

@@ -1,8 +1,8 @@
 import type { CapacitorConfig } from "@capacitor/cli";
 
 const config: CapacitorConfig = {
-  appId: "com.scriptforge.ai",
-  appName: "ScriptForge AI",
+  appId: "com.codeincant.app",
+  appName: "CodeIncant",
   webDir: "dist",
 
   // Server config for live-reload during native dev (comment out for production builds)

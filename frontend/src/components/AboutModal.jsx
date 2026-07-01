@@ -19,7 +19,7 @@ export default function AboutModal({ onClose }) {
 
           <div className="about-install-step">
             <span className="about-step-label">2. Clone the repo</span>
-            <pre className="about-code">{`git clone https://github.com/Marathon83/scriptforge-ai.git\ncd scriptforge-ai`}</pre>
+            <pre className="about-code">{`git clone https://github.com/Marathon83/codeincant.git\ncd codeincant`}</pre>
           </div>
 
           <div className="about-install-step">

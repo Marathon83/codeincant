@@ -24,3 +24,7 @@ backend/.env
 
 # Screenshots / test artifacts
 ss*.png
+test_*.png
+
+# Stray HOME state (git commands in this repo run with HOME set here)
+.local/

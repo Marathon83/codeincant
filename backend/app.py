@@ -109,6 +109,7 @@ OS_CONTEXT = {
     "windows": "Target OS: Windows. Use PowerShell 7+, winget, sc.exe.",
     "kali":    "Target OS: Kali Linux. Use bash. Prefer tools available in Kali (nmap, netcat, metasploit, etc.).",
     "docker":  "Target environment: Docker container. Use bash, Alpine/Debian base.",
+    "chromebook": "Target OS: ChromeOS (Chromebook). Use bash within the Linux (Crostini) container — Debian-based, apt for packages. For ChromeOS-only tasks (no Linux container) use crosh commands instead, noting crosh is a limited diagnostic shell, not a full POSIX shell.",
 }
 
 def os_ctx(profile: str) -> str:

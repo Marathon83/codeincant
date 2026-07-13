@@ -1,4 +1,4 @@
-const PROFILES = ["linux", "macos", "windows", "kali", "docker"];
+const PROFILES = ["linux", "macos", "windows", "kali", "docker", "chromebook"];
 
 export default function OsProfileSelector({ value, onChange }) {
   return (

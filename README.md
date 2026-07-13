@@ -136,6 +136,7 @@ The Generate, Debug, Improve, and Cheat Sheets tabs let you target a specific OS
 | `windows` | PowerShell 7+, winget, sc.exe |
 | `kali` | Kali Linux — bash, nmap, netcat, metasploit |
 | `docker` | Alpine/Debian container — bash |
+| `chromebook` | ChromeOS — bash via Linux (Crostini), crosh for ChromeOS-only tasks |
 
 ## Sandbox security
 
